@@ -8,7 +8,8 @@ switch noise control, sound presets, and touch gestures from the menu bar.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-![The BudsBar panel, noise cancelling engaged](docs/images/panel-cancelling.png)
+The compact menu-bar panel uses native macOS pickers, switches, sliders and
+grouped controls, following the system appearance in light and dark mode.
 
 ---
 
@@ -28,10 +29,6 @@ Every setting is **read back from the earbuds** before it is reported as
 applied, so the panel never shows a value the device did not accept. When a
 change is refused, the panel says so instead of failing silently.
 
-| Connected | Noise cancelling |
-|---|---|
-| ![Connected](docs/images/panel-connected.png) | ![Cancelling](docs/images/panel-cancelling.png) |
-
 ### The codec line
 
 The earbuds never report their codec — macOS negotiates it with the Bluetooth
@@ -49,8 +46,8 @@ is the earbuds' own preference and does change what they do.
 
 ## Requirements
 
-- macOS 14 or later
-- Swift 6 toolchain (Xcode 16+ or the Command Line Tools)
+- macOS 27.2 or later
+- Full Xcode 27.2 or later, selected with `xcode-select`
 - The earbuds paired with your Mac
 
 ## Install
@@ -77,21 +74,58 @@ launch asks for Bluetooth permission.
 brew install --cask budsbar
 ```
 
-## Build from source without Xcode
+## Build from source
 
 The project is a plain Swift Package Manager package — no `.xcodeproj` needed.
 
 ```sh
 swift build -c release          # build
-swift test                      # run the protocol tests
+./scripts/test.sh               # run the protocol tests
 ./scripts/build-app.sh          # assemble and sign the .app bundle
 ```
 
-> **Note on SDKs.** The build targets the macOS 26.5 SDK by default because
-> newer SDKs turn SwiftUI's `@State` into a macro whose implementation plugin
-> ships only with the full Xcode. Override with `BUDSBAR_SDK=/path/to/SDK`.
+Builds and tests use the macOS 27.2 SDK from the selected toolchain.
+Full Xcode is required for the SwiftUI macro plugins; standalone Command
+Line Tools can build the headless probe but cannot build the interface.
+Override the SDK with `BUDSBAR_SDK=/path/to/SDK` when necessary.
+
+Run `./scripts/test.sh` for the protocol tests. Extra `swift test` arguments
+can be passed to the script. Tests and apps require macOS 27.2 or later.
+
+CI selects Xcode 27.2 on the `xcode-27` runner image. That image currently
+lists macOS 27.0.1, so the test step explicitly fails its runtime check until
+the runner OS reaches 27.2. Local testing on macOS 27.2+ is required in the
+meantime; a successful cross-build alone does not verify the tests.
 
 ## Diagnostics
+
+Read-only diagnostics succeeded on FreeBuds Pro 5 (model `BTFT0023`) with
+HarmonyOS `7.0.0.350(F003H003C91)` on macOS 27.2. The probe received identity,
+battery, noise mode, equalizer options, latency, sound quality, wear detection,
+dual connection and gesture settings. Changing settings remains unverified.
+Equalizer and gesture identifiers without confirmed names retain numeric labels.
+The reported noise `level` is not proof of cancellation strength.
+To check compatibility, pair and connect the earbuds to the Mac, then run the
+read-only diagnostic as an app from Terminal:
+
+```sh
+./scripts/build-probe.sh
+open -W --stdout /tmp/budsprobe.log --stderr /tmp/budsprobe.log build/BudsProbe.app
+cat /tmp/budsprobe.log
+```
+
+The probe builds with the macOS 27.2 SDK and does not
+depend on SwiftUI. Override the SDK with `BUDSBAR_SDK=/path/to/SDK` if needed.
+Launching the app through `open` gives the diagnostic its own bundle identity
+for Bluetooth permissions. Run without `--write` or `--set`
+to avoid changing earbud settings. Check the reported model code, firmware,
+battery and feature values; unknown values do not establish support.
+The diagnostic also prints device serial numbers, so redact them before
+sharing output. A successful protocol test suite does not verify a device.
+
+The probe includes its own Bluetooth usage description. Allow Bluetooth access
+when macOS requests it. If access was denied, check System Settings > Privacy
+& Security > Bluetooth for the probe or the terminal used to launch it.
 
 A headless probe that exercises the same protocol code as the app:
 
@@ -99,6 +133,21 @@ A headless probe that exercises the same protocol code as the app:
 swift run BudsProbe            # read everything
 swift run BudsProbe --write    # also round-trip one write per feature
 ```
+
+To validate setting changes using the app bundle:
+
+```sh
+./scripts/build-probe.sh
+open -W --stdout /tmp/budsprobe-write.log --stderr /tmp/budsprobe-write.log build/BudsProbe.app --args --write
+cat /tmp/budsprobe-write.log
+```
+
+The probe changes and restores noise mode, equalizer, low latency, sound
+quality preference and the right double-tap action, when readable values
+and alternate options are available. It stops with `VALIDATION FAILED` and
+exit code 2 if a change or restoration cannot be confirmed. A successful
+run prints `VALIDATION PASSED` with the number of settings checked. The
+launcher exiting successfully alone does not establish validation success.
 
 ## How it works
 
@@ -115,9 +164,8 @@ BudsBar.app
 ├── BudsUI
 │   ├── ControlPanel.swift  →  panel shell and header
 │   ├── PanelContent.swift  →  the control sections
-│   ├── Controls.swift      →  hand-drawn segmented controls, menus, switch
-│   ├── EarbudIcon.swift    →  the app's own earbud, drawn as a path
-│   └── Motion.swift        →  the original motion design
+│   ├── Controls.swift      →  native pickers, switches and battery rows
+│   └── EarbudIcon.swift    →  the original earbud illustration
 └── BudsProbe               →  headless diagnostic
 ```
 
@@ -133,8 +181,11 @@ magic byte to the end of the body and is verified on every received frame.
 
 ## Supported devices
 
-Verified on **HUAWEI FreeBuds 6** (model `BTFT0020`, firmware
+Originally verified on **HUAWEI FreeBuds 6** (model `BTFT0020`, firmware
 `HarmonyOS 6.1.0.358`, macOS 26.x, Apple Silicon).
+This fork now requires macOS 27.2+. Read-only diagnostics are also verified
+on **HUAWEI FreeBuds Pro 5** (`BTFT0023`), as described above; settings writes
+on that model remain unverified.
 
 The protocol is shared across the FreeBuds line and the app is written to
 adapt to what the device reports — equalizer presets and gesture actions are

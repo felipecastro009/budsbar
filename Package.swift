@@ -1,9 +1,14 @@
 // swift-tools-version: 6.0
 import PackageDescription
+import Foundation
+
+let probeInfoPlist = URL(fileURLWithPath: #filePath)
+    .deletingLastPathComponent()
+    .appendingPathComponent("Resources/BudsProbe-Info.plist").path
 
 let package = Package(
     name: "BudsBar",
-    platforms: [.macOS(.v14)],
+    platforms: [.macOS("27.2")],
     products: [
         .executable(name: "BudsBar", targets: ["BudsBar"]),
         .library(name: "BudsCore", targets: ["BudsCore"]),
@@ -22,13 +27,21 @@ let package = Package(
         .executableTarget(
             name: "BudsBar",
             dependencies: ["BudsCore", "BudsUI"],
+            resources: [.copy("Resources/MenuBarMonogram.png")],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
         // Headless diagnostic that exercises the same protocol code the app uses.
         .executableTarget(
             name: "BudsProbe",
             dependencies: ["BudsCore"],
-            swiftSettings: [.swiftLanguageMode(.v6)]
+            swiftSettings: [.swiftLanguageMode(.v6)],
+            // A standalone executable needs its own Bluetooth usage description.
+            linkerSettings: [.unsafeFlags([
+                "-Xlinker", "-sectcreate",
+                "-Xlinker", "__TEXT",
+                "-Xlinker", "__info_plist",
+                "-Xlinker", probeInfoPlist
+            ])]
         ),
         // Renders the control panel to PNG for documentation and review.
         .executableTarget(
