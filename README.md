@@ -61,50 +61,41 @@ is the earbuds' own preference and does change what they do.
 ## Requirements
 
 - macOS 27.2 or later
-- Full Xcode 27.2 or later, selected with `xcode-select`
+- Apple Silicon Mac (arm64)
 - The earbuds paired with your Mac
 
 ## Install
 
-### From source
+1. Download [BudsBar-0.2.0-arm64.dmg](https://github.com/felipecastro009/budsbar/releases/download/v0.2.0/BudsBar-0.2.0-arm64.dmg) from the [latest release](https://github.com/felipecastro009/budsbar/releases/latest).
+2. Open the DMG and drag **BudsBar** into **Applications**. Quit any running copy before replacing it.
+3. Open BudsBar from Applications and allow Bluetooth access when prompted.
+
+No Xcode or compilation is required. The release includes a SHA-256 checksum
+file for verifying the download.
+
+The app is ad-hoc signed and is not notarized by Apple. If macOS blocks the
+first launch, review the app in **System Settings → Privacy & Security** and
+choose **Open Anyway**.
+
+A monogram appears in the macOS menu bar. Click it to open the panel; the app
+has no Dock icon or standalone main window. Without a connection, the panel
+shows an empty state and hides device readings and controls.
+
+Homebrew instructions from upstream install the upstream release. Use the
+DMG above to install this fork.
+
+## Build from source
+
+For development, install full Xcode 27.2 or later and select its toolchain.
+The project is a plain Swift Package Manager package — no `.xcodeproj` needed.
 
 ```sh
 git clone git@github.com:felipecastro009/budsbar.git
 cd budsbar
-./scripts/build-app.sh
-./scripts/install.sh
-```
-
-`install.sh` copies the app to `/Applications` and launches it. The first
-launch asks for Bluetooth permission.
-
-> macOS ties that permission to the signature of the binary. Every new build
-> is a new signature, so a locally built app asks again — approve the prompt
-> and the panel connects.
-
-### Launch or restart the local build
-
-```sh
-open build/BudsBar.app
-```
-
-A monogram appears in the macOS menu bar. Click it to open the panel; the app
-has no Dock icon or standalone main window. Without a connection, the panel
-shows an empty state and hides device readings and controls. If an older
-instance is already running, quit BudsBar from its options menu before
-opening the new build.
-
-Homebrew instructions from upstream install the upstream release, not this
-fork. Build from source for the changes documented here.
-
-## Build from source
-
-The project is a plain Swift Package Manager package — no `.xcodeproj` needed.
-
-```sh
 swift build -c release          # build
 ./scripts/test.sh               # run the protocol tests
 ./scripts/build-app.sh          # assemble and sign the .app bundle
+./scripts/install.sh            # install the local build in /Applications
 ```
 
 Builds and tests use the macOS 27.2 SDK from the selected toolchain.
@@ -239,8 +230,8 @@ rest unknown.
 ```
 Sources/
 ├── BudsCore/       protocol, transport, state model
-├── BudsUI/         native SwiftUI panel and controls
-├── BudsBar/        the menu-bar app and bundled PNG icon
+├── BudsUI/         native SwiftUI panel, controls and shared PNG icon
+├── BudsBar/        the menu-bar app
 ├── BudsProbe/      headless diagnostic
 └── BudsPanelShot/  renders the panel to PNG for the docs
 Tests/              protocol unit tests
