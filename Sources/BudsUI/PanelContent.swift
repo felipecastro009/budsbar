@@ -20,7 +20,15 @@ public struct PanelContent<Model: BudsViewModel>: View {
         VStack(alignment: .leading, spacing: 16) {
             if !controller.linkState.isConnected {
                 ContentUnavailableView {
-                    Label("No earbuds connected", systemImage: "earbuds")
+                    Label {
+                        Text("No earbuds connected")
+                    } icon: {
+                        Image(nsImage: BudsBarIcon.image)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 48, height: 48)
+                            .accessibilityHidden(true)
+                    }
                 } description: {
                     if case .failed(let message) = controller.linkState {
                         Text(message)

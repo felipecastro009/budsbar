@@ -22,12 +22,12 @@ let package = Package(
         .target(
             name: "BudsUI",
             dependencies: ["BudsCore"],
+            resources: [.copy("Resources/MenuBarMonogram.png")],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
         .executableTarget(
             name: "BudsBar",
             dependencies: ["BudsCore", "BudsUI"],
-            resources: [.copy("Resources/MenuBarMonogram.png")],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
         // Headless diagnostic that exercises the same protocol code the app uses.

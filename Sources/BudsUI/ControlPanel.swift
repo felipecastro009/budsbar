@@ -249,8 +249,10 @@ public struct ControlPanel<Model: BudsViewModel>: View {
     // MARK: - Header
     private var header: some View {
         HStack(spacing: 12) {
-            Image(systemName: "earbuds")
-                .font(.title)
+            Image(nsImage: BudsBarIcon.image)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 28, height: 28)
                 .foregroundStyle(.secondary)
                 .frame(width: 44, height: 44)
                 .background(.quaternary, in: Circle())

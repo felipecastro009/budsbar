@@ -21,9 +21,9 @@ monogram, native controls and expanded device information:
 The menu-bar monogram is a transparent template image. macOS supplies its
 foreground color for the current appearance.
 
-<img src="Sources/BudsBar/Resources/MenuBarMonogram.png" alt="Transparent menu-bar monogram" width="64" height="64">
+<img src="Sources/BudsUI/Resources/MenuBarMonogram.png" alt="Transparent menu-bar monogram" width="64" height="64">
 
-[Download the transparent icon](Sources/BudsBar/Resources/MenuBarMonogram.png)
+[Download the transparent icon](Sources/BudsUI/Resources/MenuBarMonogram.png)
 
 ---
 

@@ -19,7 +19,7 @@ struct BudsBarApp: App {
                     Task { await controller.connect() }
                 }
         } label: {
-            Image(nsImage: MenuBarIcon.image)
+            Image(nsImage: BudsBarIcon.image)
                 .accessibilityLabel("BudsBar")
         }
         .menuBarExtraStyle(.window)
